@@ -1,7 +1,6 @@
 import java.util.Random;
 
-public class MyInteger {
-
+public class MyInteger implements MyNumber {
 
     private int vaartus;
 
@@ -9,7 +8,7 @@ public class MyInteger {
         this.vaartus = vaartus;
     }
 
-    public int getVaartus() {
+    public double getVaartus() {
         return this.vaartus;
     }
 
@@ -17,34 +16,25 @@ public class MyInteger {
         this.vaartus = uusVaartus;
     }
 
-
-
-    public MyInteger liida(MyInteger teine) {
-        return new MyInteger(this.vaartus + teine.getVaartus());
+    public MyDouble liida(MyNumber teine) {
+        return new MyDouble(this.vaartus + teine.getVaartus());
     }
 
-    public MyInteger lahuta(MyInteger teine) {
-        return new MyInteger(this.vaartus - teine.getVaartus());
+    public MyDouble lahuta(MyNumber teine) {
+        return new MyDouble(this.vaartus - teine.getVaartus());
     }
 
-    public MyInteger korruta(MyInteger teine) {
-        return new MyInteger(this.vaartus * teine.getVaartus());
+    public MyDouble korruta(MyNumber teine) {
+        return new MyDouble(this.vaartus * teine.getVaartus());
     }
 
-    public MyInteger jaga(MyInteger teine) {
+    public MyDouble jaga(MyNumber teine) {
         if (teine.getVaartus() == 0) {
             throw new IllegalArgumentException("ERROR: nulliga jagamine");
         }
-        return new MyInteger(this.vaartus / teine.getVaartus());
+        return new MyDouble(this.vaartus / teine.getVaartus());
     }
 
-    // 0-ga jagamine / jäägi leidmine
-    public MyInteger jaak(MyInteger teine) {
-        if (teine.getVaartus() == 0) {
-            throw new IllegalArgumentException("ERROR: nulliga jagamine");
-        }
-        return new MyInteger(this.vaartus % teine.getVaartus());
-    }
 
     // vordlemise meetodid
 
@@ -68,10 +58,11 @@ public class MyInteger {
         return this.vaartus <= teine.getVaartus();
     }
 
-    // juhusliku suuruse meetod (juhendis oli kirjas)
+    // juhusliku suuruse meetod
     public static MyInteger suvaline(int min, int max) {
         Random r = new Random();
         int juhuslik = r.nextInt((max - min) + 1) + min;
         return new MyInteger(juhuslik);
+
     }
 }

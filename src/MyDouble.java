@@ -1,36 +1,34 @@
 import java.util.Random;
 
-public class MyDouble {
-
+public class MyDouble implements MyNumber{
 
     private double vaartus;
-
 
     public MyDouble(double vaartus) {
         this.vaartus = vaartus;
     }
 
-
+    // on vaja double mitte int
     public double getVaartus() {
         return this.vaartus;
     }
 
     // nõutakse eraldi meetodeid, sp pole try-catch
 
-    public MyDouble liida(MyDouble teine) {
+    public MyDouble liida(MyNumber teine) {
         return new MyDouble(this.vaartus + teine.getVaartus());
     }
 
-    public MyDouble lahuta(MyDouble teine) {
+    public MyDouble lahuta(MyNumber teine) {
         return new MyDouble(this.vaartus - teine.getVaartus());
     }
 
-    public MyDouble korruta(MyDouble teine) {
+    public MyDouble korruta(MyNumber teine) {
         return new MyDouble(this.vaartus * teine.getVaartus());
     }
 
     // nulliga jagamise kontroll (doubles ei saa nkn jääki tekkida)
-    public MyDouble jaga(MyDouble teine) {
+    public MyDouble jaga(MyNumber teine) {
         if (teine.getVaartus() == 0.0) {
             throw new IllegalArgumentException("ERROR: nulliga jagamine");
         }

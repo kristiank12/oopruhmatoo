@@ -1,10 +1,9 @@
 import java.util.Scanner;
+import java.util.ArrayList;
 
 public class sisendiHaldur {
     private Scanner sisend;
-    private String sisendiTehe;
-    private double esimeneArv;
-    private double teineArv;
+    private ArrayList<MyNumber> arvud = new ArrayList<>();
 
     public String määraTüüp() {
         if (sisend.hasNextInt()) {
@@ -18,32 +17,62 @@ public class sisendiHaldur {
         }
     }
 
-    public sisendiHaldur(Scanner sisend, String sisendiTehe) {
+    public MyNumber arvuta(String märk) {
+        if (märk.equals("+")) {
+            MyNumber puhver = new MyDouble(0);
+            for (int i = 1; i < arvud.size(); i++) {
+                puhver = arvud.get(i-1).liida(arvud.get(i));
+                arvud.set(i, puhver);
+            }
+            return arvud.get(arvud.size() - 1);
+        } else if (märk.equals("-")) {
+            MyNumber puhver = new MyDouble(0);
+            for (int i = 1; i < arvud.size(); i++) {
+                puhver = arvud.get(i-1).lahuta(arvud.get(i));
+                arvud.set(i, puhver);
+            }
+            return arvud.get(arvud.size() - 1);
+        } else if (märk.equals("*")) {
+            MyNumber puhver = new MyDouble(0);
+            for (int i = 1; i < arvud.size(); i++) {
+                puhver = arvud.get(i-1).korruta(arvud.get(i));
+                arvud.set(i, puhver);
+            }
+            return arvud.get(arvud.size() - 1);
+        } else if (märk.equals("/")) {
+            MyNumber puhver = new MyDouble(0);
+            for (int i = 1; i < arvud.size(); i++) {
+                puhver = arvud.get(i-1).jaga(arvud.get(i));
+                arvud.set(i, puhver);
+            }
+            return arvud.get(arvud.size() - 1);
+        } else if (märk.equals("r")) {
+            // Kontrollib kas üks otsadest on double, kui on siis kasutada mydouble klassi, vastasel juhul saab kasutada myintegeri
+            if (arvud.getFirst().getClass().getName().equals("MyDouble")) {
+                return MyDouble.suvaline(arvud.getFirst().getVaartus(), arvud.getLast().getVaartus());
+            } else if (arvud.getLast().getClass().getName().equals("MyDouble")) {
+                return MyDouble.suvaline(arvud.getFirst().getVaartus(), arvud.getLast().getVaartus());
+            } else {
+                return MyInteger.suvaline((int) arvud.getFirst().getVaartus(), (int) arvud.getLast().getVaartus());
+            }
+        }
+        return null;
+    }
+
+    public sisendiHaldur(Scanner sisend) {
         this.sisend = sisend;
-        this.sisendiTehe = sisendiTehe;
     }
 
-    public String getSisendiTehe() {
-        return sisendiTehe;
+    public void lisaArv(MyNumber arv) {
+        arvud.add(arv);
     }
 
-    public void setSisendiTehe(String sisendiTehe) {
-        this.sisendiTehe = sisendiTehe;
+    public void eemaldaArvud() {
+        arvud.clear();
     }
 
-    public double getEsimeneArv() {
-        return esimeneArv;
+    public int arvePraegu() {
+        return arvud.size();
     }
 
-    public void setEsimeneArv(double esimeneArv) {
-        this.esimeneArv = esimeneArv;
-    }
-
-    public double getTeineArv() {
-        return teineArv;
-    }
-
-    public void setTeineArv(double teineArv) {
-        this.teineArv = teineArv;
-    }
 }
