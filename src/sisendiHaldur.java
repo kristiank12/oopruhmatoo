@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 public class sisendiHaldur {
     private Scanner sisend;
-    private ArrayList<MyNumber> arvud = new ArrayList<>();
+    private ArrayList<MyNumber> arvud;
 
     public String määraTüüp() {
         if (sisend.hasNextInt()) {
@@ -61,6 +61,7 @@ public class sisendiHaldur {
 
     public sisendiHaldur(Scanner sisend) {
         this.sisend = sisend;
+        this.arvud = new ArrayList<>();
     }
 
     public void lisaArv(MyNumber arv) {
