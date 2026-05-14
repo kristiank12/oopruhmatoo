@@ -1,5 +1,4 @@
-
-
+// Kalkulaatori GUI
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,29 +10,25 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Scanner;
+import java.time.LocalDateTime; // Logide jaoks
+import java.time.format.DateTimeFormatter;
 
 public class KalkGui extends Application {
-/*
-SELLEKS ET TÖÖLE SAADA PEAD ISE LISAMA MAVEN LIBRARYD MA EI PUSHI NEID GITIGA KAASA KUNA NEED ON ERINEVATE SÜSTEEMIDE PUHUL ERINEVAD
-MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:javafx-controls:21.0.2 ja täpselt sama asi uuesti aga seekord org.openjfx:javafx-fxml:21.0.2
-*/
-    // pane siin käima oma SisendiHaldur ja Ajalugu klassid
 
     private TextField ekraan;
-    private double esimeneArv = 0;
+    private MyNumber esimeneArv = null;
     private String tehe = "";
     private boolean ootabUutArvu = true;
 
-    // See faili nimi ja faili loogika enda ajaloo faili
-    private final String AJALOO_FAIL = "ajalugu.txt";
+    // Tehted ja Ajalugu
+    Tehted tehted = new Tehted();
+    Ajalugu ajalugu = new Ajalugu();
+
+    DateTimeFormatter formaat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm:ss"); // Puhtam aja formaat
 
     @Override
     public void start(Stage peaLava) {
-        naitaInfot();
+        naitaInfot(); // Kalkulaatori juhend
 
         VBox juur = new VBox(15);
         juur.setPadding(new Insets(20));
@@ -51,12 +46,13 @@ MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:
         nupud.setVgap(8);
         VBox.setVgrow(nupud, Priority.ALWAYS);
 
+        // Nuppude loomine graafiliselt
         String[][] nupuTekstid = {
                 {"7", "8", "9", "/"},
                 {"4", "5", "6", "*"},
                 {"1", "2", "3", "-"},
                 {"C", "0", "=", "+"},
-                {"H", "R", "", ""}
+                {"H", "R", "CH", ""}
         };
 
         for (int rida = 0; rida < 5; rida++) {
@@ -79,7 +75,7 @@ MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:
 
                     if (tekst.matches("[/*\\-+=]")) {
                         nupp.setStyle("-fx-base: #ff9800; -fx-text-fill: white; -fx-background-radius: 5px;");
-                    } else if (tekst.equals("C") || tekst.equals("H") || tekst.equals("R")) {
+                    } else if (tekst.equals("C") || tekst.equals("H") || tekst.equals("R") || tekst.equals("CH")) {
                         nupp.setStyle("-fx-base: #607d8b; -fx-text-fill: white; -fx-background-radius: 5px;");
                     } else {
                         nupp.setStyle("-fx-base: #ffffff; -fx-text-fill: black; -fx-background-radius: 5px;");
@@ -94,6 +90,7 @@ MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:
         juur.getChildren().addAll(ekraan, nupud);
         Scene stseen = new Scene(juur, 320, 480);
 
+        // Klaviatuuri vajutuste kontrollimine
         stseen.setOnKeyPressed(e -> {
             KeyCode kood = e.getCode();
             if (kood.isDigitKey()) {
@@ -129,23 +126,39 @@ MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:
                 ekraan.setText(ekraan.getText() + sisend);
             }
         } else if (sisend.equals("C")) {
-            // Lisa siia oma SisendiHalduri puhastamise meetod näiteks sisendiHaldur.eemaldaArvud()
+
             ekraan.setText("0");
-            esimeneArv = 0;
+            esimeneArv = null;
             tehe = "";
             ootabUutArvu = true;
+
         } else if (sisend.equals("H")) {
-            // Asenda see oma Ajalugu klassi meetodi väljakutsega
-            kuvaAjalugu();
+            // Ajaloo lugemine failist ning kontrollimine, et ajalugu on olemas ja lugemine õnnestus
+            String ajaluguTekst = ajalugu.kuvaAjalugu();
+            if (ajaluguTekst.isEmpty()) naitaInfot("Ajalugu on tühi!");
+            else if (ajaluguTekst.equals("viga")) naitaViga("Failist lugemine ebaõnnestus");
+            else {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Tehete ajalugu");
+                alert.setHeaderText("Salvestatud tehed:");
+
+                TextArea texala = new TextArea(ajaluguTekst);
+                texala.setEditable(false);
+                alert.getDialogPane().setContent(texala);
+                alert.showAndWait();
+            }
         } else if (sisend.equals("R")) {
-            int suvaline = (int) (Math.random() * 100) + 1;
+            int suvaline = tehted.suvaline();
             ekraan.setText(String.valueOf(suvaline));
             ootabUutArvu = true;
+        } else if (sisend.equals("CH")) {
+            if (!(ajalugu.puhasta())) naitaViga("Ajaloo puhastamine ebaõnnestus!");
+            else naitaInfot("Ajalugu on puhastatud");
         } else if (sisend.equals("=")) {
             arvutaTulemus();
         } else {
             try {
-                esimeneArv = Double.parseDouble(ekraan.getText());
+                esimeneArv = new MyDouble(Double.parseDouble(ekraan.getText()));
                 tehe = sisend;
                 ootabUutArvu = true;
             } catch (NumberFormatException ex) {
@@ -158,24 +171,17 @@ MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:
         if (tehe.isEmpty()) return;
 
         try {
-            double teineArv = Double.parseDouble(ekraan.getText());
-            double tulemus = 0;
+            MyNumber teineArv = new MyDouble(Double.parseDouble(ekraan.getText()));
+            MyNumber tulemus = tehted.arvuta(tehe, esimeneArv, teineArv);
 
-            // Kustuta see switch ära ja pane siia oma SisendiHalduri arvutamise loogika
-            switch (tehe) {
-                case "+": tulemus = esimeneArv + teineArv; break;
-                case "-": tulemus = esimeneArv - teineArv; break;
-                case "*": tulemus = esimeneArv * teineArv; break;
-                case "/":
-                    if (teineArv == 0) throw new ArithmeticException("Nulliga jagamine!");
-                    tulemus = esimeneArv / teineArv;
-                    break;
+            double tulemuseVaartus = tulemus.getVaartus();
+
+            ekraan.setText(String.valueOf(tulemuseVaartus));
+
+            // Salvesta tehe ajalukku, kui salvestamine ebaõnnestub (tagastatakse false), siis näidatakse viga
+            if (!(ajalugu.salvesta(LocalDateTime.now().format(formaat) + " - " + esimeneArv.getVaartus() + " " + tehe + " " + teineArv.getVaartus() + " = " + tulemuseVaartus))) {
+                naitaViga("Ajaloo salvestamine ebaõnnestus.");
             }
-
-            ekraan.setText(String.valueOf(tulemus));
-
-            // Asenda see oma Ajalugu klassi failikirjutamise meetodiga
-            kirjutaAjalukku(esimeneArv + " " + tehe + " " + teineArv + " = " + tulemus);
 
             tehe = "";
             ootabUutArvu = true;
@@ -189,49 +195,11 @@ MINE FILE->PROJECT STRUCTURE JA SEALT LIBRARIES from maven ja paste org.openjfx:
         }
     }
 
-    // Liiguta see meetod tervenisti ajaloo faili
-    private void kirjutaAjalukku(String logiRida) {
-        try (FileWriter kirjutaja = new FileWriter(AJALOO_FAIL, true)) {
-            kirjutaja.write(logiRida + "\n");
-        } catch (IOException e) {
-            naitaViga("Ajaloo salvestamine ebaõnnestus.");
-        }
-    }
-
-    // Liiguta see meetod tervenisti oma Ajalugu klassi alla
-    private void kuvaAjalugu() {
-        StringBuilder ajaluguTekst = new StringBuilder();
-        File fail = new File(AJALOO_FAIL);
-
-        if (!fail.exists()) {
-            naitaInfot("Ajalugu on tühi.");
-            return;
-        }
-
-        try (Scanner lugeja = new Scanner(fail)) {
-            while (lugeja.hasNextLine()) {
-                ajaluguTekst.append(lugeja.nextLine()).append("\n");
-            }
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Tehete ajalugu");
-            alert.setHeaderText("Salvestatud tehed:");
-
-            TextArea texala = new TextArea(ajaluguTekst.toString());
-            texala.setEditable(false);
-            alert.getDialogPane().setContent(texala);
-            alert.showAndWait();
-
-        } catch (IOException e) {
-            naitaViga("Ajaloo lugemine ebaõnnestus.");
-        }
-    }
-
     private void naitaInfot() {
         Alert info = new Alert(Alert.AlertType.INFORMATION);
         info.setTitle("Kalkulaatori juhend");
         info.setHeaderText("Tere tulemast!");
-        info.setContentText("Kalkulaatorit saab kasutada nii hiire kui klaviatuuriga.\nNupp C puhastab ekraani klaviatuuril Backspace.\nNupp H avab tehete ajaloo.\nNupp R genereerib suvalise arvu.");
+        info.setContentText("Kalkulaatorit saab kasutada nii hiire kui klaviatuuriga.\nNupp C puhastab ekraani klaviatuuril Backspace.\nNupp H avab tehete ajaloo.\nNupp R genereerib suvalise arvu.\nNupp CH puhastab ajaloo.");
         info.showAndWait();
     }
 

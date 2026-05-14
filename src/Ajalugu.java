@@ -1,40 +1,52 @@
-import java.util.ArrayList;
+// Ajalugu klass tehete kirjutamiseks ja lugemiseks failist
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Scanner;
 
 public class Ajalugu {
-    //tehted ja tulemused eraldi arraylistidena
-    private ArrayList<String> tehted;
-    private ArrayList<Double> tulemused;
+    private String failiNimi = "ajalugu.txt";
 
-    public Ajalugu() {
-        this.tehted = new ArrayList<>();
-        this.tulemused = new ArrayList<>();
-    }
-
-    // tehete salvestamine
-    public void salvesta(String tehe, double tulemus) {
-        this.tehted.add(tehe);
-        this.tulemused.add(tulemus);
-    }
-
-    // annab ainult viimase tehte
-    public String viimaneTehe() {
-        if (tehted.isEmpty()) return "tyhi";
-        return tehted.get(tehted.size() - 1);
-    }
-
-    // annab ainult viimase vastuse
-    public double viimaneTulemus() {
-        if (tulemused.isEmpty()) return 0.0;
-        return tulemused.get(tulemused.size() - 1);
-    }
-
-    //kõik tehted korraga (ehk nii tulemus kui tehe ja vastus=
-    public String koik() {
-        if (tehted.isEmpty()) return "Pole midagi tagastada";
-        String vastus = "";
-        for (int i = 0; i < tehted.size(); i++) {
-            vastus += tehted.get(i) + " = " + tulemused.get(i) + "\n";
+    // Tehte salvestamine peale tehte tegemist
+    public boolean salvesta(String tehe) {
+        try (FileWriter kirjutaja = new FileWriter(failiNimi, true)) {
+            kirjutaja.write(tehe + "\n");
+            return true;
+        } catch (IOException e) {
+            return false;
         }
-        return vastus;
+    }
+
+    // Kõikide tehete info
+    public String kuvaAjalugu() {
+
+        File fail = new File(failiNimi);
+
+        if (!fail.exists()) {
+            return "";
+        }
+
+        StringBuilder ajaluguTekst = new StringBuilder();
+
+        try (Scanner lugeja = new Scanner(fail)) {
+            while (lugeja.hasNextLine()) {
+                ajaluguTekst.append(lugeja.nextLine()).append("\n");
+            }
+
+            return ajaluguTekst.toString();
+
+        } catch (IOException e) {
+            return "viga";
+        }
+    }
+
+    // Ajaloo puhastamine
+    public boolean puhasta() {
+        try (FileWriter kirjutaja = new FileWriter(failiNimi, false)) {
+            kirjutaja.write("");
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

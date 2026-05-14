@@ -1,3 +1,4 @@
+// MyInteger mähisklass int tüüpi arvude jaoks
 import java.util.Random;
 
 public class MyInteger implements MyNumber {
@@ -36,7 +37,7 @@ public class MyInteger implements MyNumber {
     }
 
 
-    // vordlemise meetodid
+    // Vordlemise meetodid
 
     public boolean onSuurem(MyInteger teine) {
         return this.vaartus > teine.getVaartus();
